@@ -1,0 +1,26 @@
+name: Google Chrome Remote Desktop
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: 'کد ۱۲ رقمی از https://remotedesktop.google.com/headless'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+    - name: Download Chrome Remote Desktop
+      run: |
+        Invoke-WebRequest "https://dl.google.com/remote/desktop/chromeremotedesktop_installer.exe" -OutFile "CRD.exe"
+        Start-Process -Wait -FilePath ".\CRD.exe" -ArgumentList "/install"
+        
+    - name: Setup Host
+      run: |
+        $CRDPath = "${env:ProgramFiles(x86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe"
+        & $CRDPath --code="${{ github.event.inputs.code }}" --redirect-url="https://remotedesktop.google.com/headless" --pin=123456
+        Write-Output "✅ تنظیمات تکمیل شد. حالا به https://remotedesktop.google.com/access برو و با رمز 123456 وصل شو."
+        
+        for ($i = 0; $i -lt 360; $i++) { Start-Sleep -Seconds 60 }
